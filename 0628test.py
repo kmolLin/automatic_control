@@ -1,99 +1,60 @@
 
-from typing import Union
-numbers = Union[float, int]
-from numpy import poly1d
-import scipy as sp
+
 from scipy.signal import *
 import matplotlib.pyplot as plt
+from dialogBlock import DialogBlock
+import numpy as np
+from root_locus import compute_roots, plot_root_locus
+from bode import bode
 
+def polezeroMap(zeropoints, polepoints):
+    fig,ax = plt.subplots()
+    ax.plot(zeropoints.real,zeropoints.imag, 'g^', label = 'zero points')
+    ax.plot(polepoints.real,polepoints.imag, 'ro', label = 'polepoints')
+    ax.legend(loc='best')
+    
 
-class DialogBlock:
-    
-    def __init__(self, num, den = [1]):
-        self.num = poly1d(num)
-        self.den = poly1d(den)
-    
-    def __repr__(self) -> str:
-        if len(self.den) > 0:
-            return f"DialogBlock({list(self.num)} / {list(self.den)})"
-        else:
-            return f"DialogBlock({list(self.num)})"
-    
-    def __neg__(self) -> 'DialogBlock':
-        return DialogBlock(-self.num, self.den)
-    
-    def __add__(self, db: Union['DialogBlock', numbers]) -> 'DialogBlock':
-        if type(db) == DialogBlock:
-            #DialogBlock
-            num_first = self.num * db.den
-            num_second = self.den * db.num
-            den = self.den * db.den
-            num = num_first + num_second
-        else:
-            #Number
-            num = self.num + self.den * db
-            den = self.den
-        return DialogBlock(num, den)
-    
-    def __radd__(self, db: Union['DialogBlock', numbers]) -> 'DialogBlock':
-        return self + db
-    
-    def __sub__(self, db: Union['DialogBlock', numbers]) -> 'DialogBlock':
-        return self + (-db)
-    
-    def __mul__(self, db: Union['DialogBlock', numbers]) -> 'DialogBlock':
-        if type(db) == DialogBlock:
-            #DialogBlock
-            num = self.num * db.num
-            den = self.den * db.den
-        else:
-            #Number
-            num = self.num * db
-            den = self.den
-        return DialogBlock(num, den)
-    
-    def __rmul__(self, db: Union['DialogBlock', numbers]) -> 'DialogBlock':
-        return self * db
-    
-    def __truediv__(self, db: Union['DialogBlock', numbers]) -> 'DialogBlock':
-        if type(db) == DialogBlock:
-            #DialogBlock
-            num = self.num * db.den
-            den = self.den * db.num
-        else:
-            #Number
-            num = self.num
-            den = self.den * db
-        return DialogBlock(num, den)
-    
-    def series(self, db: 'DialogBlock') -> 'DialogBlock':
-        return self * db
-    
-    def paralell(self, db: 'DialogBlock') -> 'DialogBlock':
-        return self + db
-    
-    def feedback(self, db: Union['DialogBlock', numbers]) -> 'DialogBlock':
-        if db in (1, -1):
-            return self.cloop(db == 1)
-        return self / (self * db + 1)
-    
-    def cloop(self, reversed=True) -> 'DialogBlock':
-        return DialogBlock(
-            self.num,
-            self.num + (self.den if reversed else -self.den)
-        )
-"""
-print((DialogBlock([2, 3], [1, 3, 1, -1])*10)
-    .cloop()
-)
-"""
-a = ((DialogBlock([2, 3], [1, 3, 1, -1])*10)
-    .cloop())
+def ord2(Wn, zeta):
+    return DialogBlock([Wn*Wn], [1, 2*Wn*zeta, Wn*Wn])
+
+a = ((DialogBlock([10, 20], [1, 50, 0])))
+
+bode(a.num, a.den)
+
+gains = np.linspace(0.0, 1000.0, num=500)
+
+#a = (DialogBlock([1, 2], [1, 2, 3, 0]).cloop())
 
 c = TransferFunction(list(a.num), list(a.den))
-print(c.poles.real)
-print(c.zeros)
+
+#plot_root_locus(gains, compute_roots(a, gains))
+
+t = np.linspace(0, 10)
+u = np.ones_like(t)
+r = t
+tout, y, x = lsim(c, r, t)
+
+print(r[49]-y[49])
+#print(c.zeros.real)
+
+print(ord2(5, 0.6))
+seco = ord2(5, 0.6)
+secondorder = TransferFunction(list(seco.num), list(seco.den))
+w, H = freqresp(c)
+
+#T, yout = step(secondorder)
+#plt.plot(H.real, H.imag, "b")
+#plt.plot(H.real, -H.imag, "r")
+#plt.show()
+"""
+plt.plot(T, yout)
+plt.plot(t, y, label='abs signal')
+plt.plot(t, r)
+"""
 pp = []
+
+#polezeroMap(c.poles, c.zeros)
+
 
 """
 num = [1.045, 0]
