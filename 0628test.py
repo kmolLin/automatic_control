@@ -1,5 +1,4 @@
 
-
 from scipy.signal import *
 import matplotlib.pyplot as plt
 from dialogBlock import DialogBlock
@@ -13,13 +12,97 @@ def polezeroMap(zeropoints, polepoints):
     ax.plot(polepoints.real,polepoints.imag, 'ro', label = 'polepoints')
     ax.legend(loc='best')
     
+class Eztfnt():
+    def __init__(self, num, den, dt):
+        self.num = num
+        self.den = den
+        self.U = []
+        self.E = []
+        
+        print(self.num)
+        print(self.den)
+            
+    def getValue(self,index, value):
+        self.U.append(value)
+        a = 1
+        numget = 0.0
+        denget = 0.0
+        for i, ob in enumerate(list(self.num)):
+            if (index-a) <= 0:
+                a+=1
+                
+                continue
+            print(index, float(ob))
+                #if self.E[index-a]
+            self.E[index-a]=0
+            numget += float(ob)*self.E[index-a]
+            a+=1
+        for a, b in enumerate(list(self.den)):
+            if (index-a) <= 0:
+                continue
+            denget += b*self.U[index-a]
+        self.E.append(numget-denget)
+
+#7wHXHWW6wzeL
+def calcc2d(u, num, den, sampletime):
+    e = []
+    for k, u_k in enumerate(u):
+        sum1 = 0
+        for i, num_i in enumerate(num):
+            #print(k, i)
+            print(k, i)
+            if k - i < 0:
+                #sum1 += 0
+                continue
+            elif k-i ==0 :
+                continue
+            else:
+                sum1 += num_i*e[k-i]
+        print(sum1)
+        if k ==1: 
+            raise
+        #print(sum1)
+        sum2 = 0
+        for io, den_i in tuple(enumerate(den))[1:k+1]:
+            if k-io < 0:
+                sum2+=0
+            else:
+                sum2 += den_i * u[k-io]
+        e.append(u_k-(sum1 + sum2))
+    #print(e)
+
+    t = np.arange(0, sampletime*(len(u)+1), sampletime)
+    plt.plot(t, e)
+    #plt.show()
+
 
 def ord2(Wn, zeta):
     return DialogBlock([Wn*Wn], [1, 2*Wn*zeta, Wn*Wn])
 
-a = ((DialogBlock([10, 20], [1, 50, 0])))
+a = DialogBlock([18], [1, 1, 20])
+dd, d1, d3d = cont2discrete((a.num, a.den), 11)
+print(dd, d1, d3d)
+signallist = [1]*20
+calcc2d(signallist, dd[0], d1, d3d)
 
-bode(a.num, a.den)
+c = TransferFunction(a.num, a.den)
+T, yout = step(c)
+
+#print(c.to_zpk())
+
+plt.plot(T, yout, label='abs signal')
+plt.show()
+
+"""
+for i, de in enumerate(signallist):
+    print(f'{i}+index input')
+    Ztfnt.getValue(i, de)
+#print(Ztfnt.E)
+"""
+"""
+a = DialogBlock([18], [1, 1, 2]).cloop()
+
+#bode(a.num, a.den)
 
 gains = np.linspace(0.0, 1000.0, num=500)
 
@@ -27,6 +110,11 @@ gains = np.linspace(0.0, 1000.0, num=500)
 
 c = TransferFunction(list(a.num), list(a.den))
 
+dd, d1, d3d = cont2discrete((a.num, a.den), 1)
+
+print(list(dd[0]))
+print(d1)
+print(d3d)
 #plot_root_locus(gains, compute_roots(a, gains))
 
 t = np.linspace(0, 10)
@@ -41,7 +129,7 @@ print(ord2(5, 0.6))
 seco = ord2(5, 0.6)
 secondorder = TransferFunction(list(seco.num), list(seco.den))
 w, H = freqresp(c)
-
+"""
 #T, yout = step(secondorder)
 #plt.plot(H.real, H.imag, "b")
 #plt.plot(H.real, -H.imag, "r")
