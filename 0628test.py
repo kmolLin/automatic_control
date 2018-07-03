@@ -11,68 +11,36 @@ def polezeroMap(zeropoints, polepoints):
     ax.plot(zeropoints.real,zeropoints.imag, 'g^', label = 'zero points')
     ax.plot(polepoints.real,polepoints.imag, 'ro', label = 'polepoints')
     ax.legend(loc='best')
-    
-class Eztfnt():
-    def __init__(self, num, den, dt):
-        self.num = num
-        self.den = den
-        self.U = []
-        self.E = []
-        
-        print(self.num)
-        print(self.den)
-            
-    def getValue(self,index, value):
-        self.U.append(value)
-        a = 1
-        numget = 0.0
-        denget = 0.0
-        for i, ob in enumerate(list(self.num)):
-            if (index-a) <= 0:
-                a+=1
-                
-                continue
-            print(index, float(ob))
-                #if self.E[index-a]
-            self.E[index-a]=0
-            numget += float(ob)*self.E[index-a]
-            a+=1
-        for a, b in enumerate(list(self.den)):
-            if (index-a) <= 0:
-                continue
-            denget += b*self.U[index-a]
-        self.E.append(numget-denget)
 
 #7wHXHWW6wzeL
-def calcc2d(u, num, den, sampletime):
-    e = []
-    for k, u_k in enumerate(u):
+def calcc2d(e, num, den, sampletime):
+    u = []
+    for k, e_k in enumerate(e):
         sum1 = 0
         for i, num_i in enumerate(num):
             #print(k, i)
-            print(k, i)
             if k - i < 0:
-                #sum1 += 0
-                continue
-            elif k-i ==0 :
                 continue
             else:
-                sum1 += num_i*e[k-i]
-        print(sum1)
-        if k ==1: 
-            raise
-        #print(sum1)
+                #print('1212', e[k-i])
+                sum1 += num[i]*e[k-i]
+        #print('sum1', sum1)
         sum2 = 0
-        for io, den_i in tuple(enumerate(den))[1:k+1]:
+        #for io, den_i in tuple(enumerate(den))[1:k+1]:
+        for io in range(1, len(den)):
+            if k == 0:
+                sum2 += 0
+                continue
+            #print('den', k, io)
             if k-io < 0:
-                sum2+=0
+                sum2 += 0
             else:
-                sum2 += den_i * u[k-io]
-        e.append(u_k-(sum1 + sum2))
+                sum2 += den[io] * u[k-io]
+        u.append(sum1 - sum2)
     #print(e)
 
-    t = np.arange(0, sampletime*(len(u)+1), sampletime)
-    plt.plot(t, e)
+    t = np.arange(0, sampletime*(len(e)), sampletime)
+    plt.plot(t, u)
     #plt.show()
 
 
@@ -80,9 +48,9 @@ def ord2(Wn, zeta):
     return DialogBlock([Wn*Wn], [1, 2*Wn*zeta, Wn*Wn])
 
 a = DialogBlock([18], [1, 1, 20])
-dd, d1, d3d = cont2discrete((a.num, a.den), 11)
+dd, d1, d3d = cont2discrete((a.num, a.den), 0.1, 'bilinear')
 print(dd, d1, d3d)
-signallist = [1]*20
+signallist = [1]*100
 calcc2d(signallist, dd[0], d1, d3d)
 
 c = TransferFunction(a.num, a.den)
@@ -90,7 +58,7 @@ T, yout = step(c)
 
 #print(c.to_zpk())
 
-plt.plot(T, yout, label='abs signal')
+#plt.plot(T, yout, label='abs signal')
 plt.show()
 
 """

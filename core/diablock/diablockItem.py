@@ -1,18 +1,19 @@
+# Diablock
+from PyQt5.QtCore import (pyqtSignal, QLineF, QPointF, QRect, QRectF, QSize,
+        QSizeF, Qt)
+from PyQt5.QtWidgets import QGraphicsItem, QGraphicsPolygonItem
+from PyQt5.QtGui import (QPainterPath,QPixmap, QPolygonF, QPainter, QPen)
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+# draw the block and signal process event
 
-class DiagramItem(QGraphicsPolygonItem):
+class DiablockItem(QGraphicsPolygonItem):
     Step, Conditional, StartEnd, Io = range(4)
-
     def __init__(self, diagramType, parent=None):
-        super(DiagramItem, self).__init__(parent)
-
-        self.arrows = []
-
+        super(DiablockItem, self).__init__(parent)
+        
         self.diagramType = diagramType
-
+        #self.contextMenu = contextMenu
+        
         path = QPainterPath()
         if self.diagramType == self.StartEnd:
             path.moveTo(200, 50)
@@ -24,9 +25,9 @@ class DiagramItem(QGraphicsPolygonItem):
             self.myPolygon = path.toFillPolygon()
         elif self.diagramType == self.Conditional:
             self.myPolygon = QPolygonF([
-                    QPointF(-100, 0), QPointF(0, 100),
-                    QPointF(100, 0), QPointF(0, -100),
-                    QPointF(-100, 0)])
+                    QPointF(-45, 45), QPointF(45, 45),
+                    QPointF(45, 45), QPointF(45, -45),
+                    QPointF(-45, 45)])
         elif self.diagramType == self.Step:
             self.myPolygon = QPolygonF([
                     QPointF(-45, -45), QPointF(45, -45),
@@ -37,26 +38,11 @@ class DiagramItem(QGraphicsPolygonItem):
                     QPointF(-120, -80), QPointF(-70, 80),
                     QPointF(120, 80), QPointF(70, -80),
                     QPointF(-120, -80)])
-
+                    
         self.setPolygon(self.myPolygon)
-        #self.setFlag(QGraphicsItem.ItemIsMovable, True)
-        #self.setFlag(QGraphicsItem.ItemIsSelectable, True)
-
-    def removeArrow(self, arrow):
-        try:
-            self.arrows.remove(arrow)
-        except ValueError:
-            pass
-
-    def removeArrows(self):
-        for arrow in self.arrows[:]:
-            arrow.startItem().removeArrow(arrow)
-            arrow.endItem().removeArrow(arrow)
-            self.scene().removeItem(arrow)
-
-    def addArrow(self, arrow):
-        self.arrows.append(arrow)
-
+        self.setFlag(QGraphicsItem.ItemIsMovable, True)
+        self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+        
     def image(self):
         pixmap = QPixmap(250, 250)
         pixmap.fill(Qt.transparent)
@@ -65,15 +51,3 @@ class DiagramItem(QGraphicsPolygonItem):
         painter.translate(125, 125)
         painter.drawPolyline(self.myPolygon)
         return pixmap
-
-    def contextMenuEvent(self, event):
-        self.scene().clearSelection()
-        self.setSelected(True)
-        self.myContextMenu.exec_(event.screenPos())
-
-    def itemChange(self, change, value):
-        if change == QGraphicsItem.ItemPositionChange:
-            for arrow in self.arrows:
-                arrow.updatePosition()
-
-        return value
